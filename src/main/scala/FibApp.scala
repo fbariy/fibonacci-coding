@@ -1,25 +1,44 @@
 import scala.annotation.tailrec
 import scala.collection.immutable.{SortedSet, TreeMap}
-import io.StdIn.readInt
+import io.StdIn.{readBoolean, readInt, readLine}
 
 object FibApp {
   def main(args: Array[String]): Unit = {
-    print("Enter the positive number for encoding: ")
+    println("[1] decode code word")
+    println("[2] encode positive number")
+    print("\nChoose option: ")
 
-    val n = readInt()
-    val indexes = encode(n)
+    val option = readInt()
+    if (2 == option) {
+      print("Enter the positive number for encoding (ex. 37, 25, 10): ")
 
-    println(s"Fibonacci notation: ${fibonacciNotation(indexes)}")
-    println(s"Fibonacci coding: ${fibonacciCoding(indexes)}")
+      val n = readInt()
+      val indexes = encode(n)
+
+      println(s"Fibonacci notation: ${fibonacciNotation(indexes)}")
+      println(s"Fibonacci coding: ${fibonacciCoding(indexes)}")
+    }
+
+    else if (1 == option) {
+      print("Enter the code word (ex. 101010, 101): ")
+
+      val word = readLine()
+
+      println(s"Result: ${decode(word)}")
+    }
+
+    else {
+      println("Another options not available")
+    }
   }
+
+  def fib(n: Int): Int = fibIter(n)
 
   @tailrec def fibIter(n: Int, last: Int = 0, current: Int = 1): Int = n match {
     case 0 => last
     case 1 => current
     case _ => fibIter(n - 1, current, last + current)
   }
-
-  def fib(n: Int): Int = fibIter(n)
 
   def fibMap(n: Int): TreeMap[Int, Int] = (0 to n + 2)
     .view
@@ -43,6 +62,27 @@ object FibApp {
     }
 
     encodeIter(n, SortedSet())
+  }
+
+  def decode(word: String): Int = {
+    val fibonacciMap = (0 to word.length + 2)
+      .view
+      .map(fib)
+      .zipWithIndex
+      .map(_.swap)
+      .to(TreeMap)
+
+    word
+      .split("")
+      .toList
+      .reverse
+      .prependedAll(List("0", "0"))
+      .zipWithIndex
+      .foldLeft(0)(
+        (accum, pair) =>
+          if ("1" == pair._1) accum + fibonacciMap(pair._2)
+          else accum
+      )
   }
 
   def representation(indexes: Set[Int]): Seq[Int] =
